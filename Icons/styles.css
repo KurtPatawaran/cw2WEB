@@ -1,0 +1,162 @@
+
+header{
+    position:sticky;
+    background-color: rgb(62, 64, 66);
+    border-radius: 10px;
+}
+
+#headText{
+    margin-left: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#chkBox{
+    position:absolute;
+    right: 100px;
+    top: 125px;
+}
+
+#chkBtn{
+    height: 40px;
+}
+
+img{
+    width: 100px;
+    height: 100px;
+    margin-top: 15px;
+    margin-left: -15px;
+}
+
+#viewPane{
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color:darkslategray;
+    margin-top: 50px;
+    width: 100%;
+    display: inline-flex;
+    border-radius: 25px;
+}
+
+#sortingPane{
+    background-color:burlywood;
+    padding: 30PX;
+    width: 100%;
+    border-radius: 20px;
+    margin-left: 30px;
+    margin-top: 30px;
+    border: solid ;
+}
+
+#subjectPane{
+margin-left: 8%;
+position: relative;
+width: 100%;
+}
+
+#subjectDiv{
+    display: inline-flex;
+    background-color: bisque;
+    width:45%;
+    border: solid;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 25px;
+    position:relative;
+}
+
+#subjectText{
+font-weight: bold;
+}
+
+#subText{
+    line-height: 5px;
+    margin-left: -20px;
+}
+
+#searchBar{
+    width:200px;
+    height:30px;
+    font-size:20px;
+    border-radius: 10px;
+}
+
+/* Checkout Page */
+#cartPage{
+    background-color: darkslategray;
+    width: 99.4%;
+    height: 100%;
+    margin-top: 50px;
+    position: absolute;
+    border-radius: 25px;
+}
+
+#usrDetailDiv{
+    position: absolute;
+    background-color: papayawhip;
+    width: 30%;
+    right: 5%;
+    padding-left: 5px;
+    margin-top: 20px;
+    border-radius: 15px;
+    border-style:solid;
+    box-shadow: 1px 1px 1px 1px;
+}
+
+#copyDetailDiv{
+    position: absolute;
+    background-color: papayawhip;
+    width: 30%;
+    right: 5%;
+    padding-left: 5px;
+    margin-top: 14%;
+    border-radius: 15px;
+    border-style:solid;
+    box-shadow: 1px 1px 1px 1px;
+}
+
+#cartlistPane{
+    position: absolute;
+    background-color: papayawhip;
+    width: 50%;
+    left: 10%;
+    padding-left: 20px;
+    border-radius: 15px;
+    font-size: 20px;
+    border-style:solid;
+    box-shadow: 1px 1px 1px 1px;
+    max-height: 500px; /* Adjust the height as needed */
+    overflow-y: auto;
+}
+
+#textCart{
+    margin-left: 15%;
+    border-bottom: solid;
+    width: 60%;
+    padding: 10px;
+}
+
+#submitBtn{
+    position: absolute;
+    right: 5.2%;
+    top: 55%;
+    height: 10%;
+    width: 30%;
+    font-size: 40px;
+    border-radius: 20px;
+    border-style:solid;
+    box-shadow: 1px 1px 1px 1px;
+
+}
+
+p{
+    margin-left: 20%;
+    font-size: 15px;
+    line-height: 10px;
+    font-weight: bold;
+}
+
+h2{
+    margin-left: 10%;
+}
+
