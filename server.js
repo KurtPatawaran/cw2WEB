@@ -1,7 +1,10 @@
-const express = require('express')
-const app = express()
+
+const express = require('express');
+const app = express();
+
 
 app.use(express.json())
+
 app.set('port', 3000)
 app.use ((req,res,next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,17 +56,33 @@ app.get('/collection/:collectionName/:id',
     })
 })
 
-app.put('/collection/:collectionName/:id', (req, res, next) =>{
+app.put('/collection/:collectionName/:id', (req, res, next) => {
+    console.log('PUT Request Received:', req.body);
+    console.log('ID:', req.params.id);
+
     req.collection.update(
-        {_id: new ObjectID(req.params.id)},
-        {$set: req.body},
-        {safe: true, multi: false},
-        (e, result) => {
-            if(e) return next(e)
-            res.send((result.result.n === 1) ? {msg:'success'} : {msg: 'error'})
-    })
-    
-})
+        { _id: new ObjectID(req.params.id) },
+        { $set: req.body },
+        { safe: true, multi: false },
+        (err, result) => {
+            if (err) {
+                console.error('Error updating spaces:', err);
+                return res.status(500).json({ msg: 'error', error: err.message });
+            }
+
+            console.log('Spaces updated successfully:', result);
+
+            if (result.result.nModified === 1) {
+                res.json({ msg: 'success' });
+            } else {
+                res.status(404).json({ msg: 'error', error: 'No document found for update.' });
+            }
+        }
+    );
+});
+
+
+
 
 app.delete('/collection/:collectionName/:id', (req, res, next) =>{
     req.collection.deleteOne(

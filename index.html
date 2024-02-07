@@ -4,10 +4,11 @@
 <head style="background-color: grey;">
 
     <title>After School Activities</title>
+    <link rel="icon" href="/favicon.ico" />
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
     <link rel="stylesheet" href="styles.css">
-
+    
 </head>
 
 <body style="background-color: antiquewhite;">
@@ -99,9 +100,9 @@
                             <!-- Display subject information -->
                             <div id="subjectText">
                                 <p id="subText" v-text="subject.title" style="font-size: 30px;"></p>
-                                <p id="subText">Location: {{subject.location}}</p>
-                                <p id="subText">Space: {{subject.availableSpaces - cartCount(subject.id)}}</p>
-                                <p id="subText">Price: {{subject.price}}</p>
+                                    <p id="subText">Location: {{ subject.location }}</p>
+                                    <p id="subText">Space: {{ subject.availableSpaces - cartCount(subject.id) }}</p>
+                                    <p id="subText">Price: {{ subject.price }}</p>
 
                                 <!-- Add to cart button, conditionally shown based on availability -->
                                 <button v-on:click="addToCart(subject)" v-if="canAddToCart(subject)"> Add to cart </button>
@@ -158,7 +159,7 @@
                             <!-- Loop through each item in the cart and create a list item -->
                             <li v-for="item in cart" :key="item.id" id="textCart">
                                 <!-- Display the title and price of the subject associated with the current cart item -->
-                                {{ getSubjectById(item).title }} - {{ getSubjectById(item).price }}
+                                {{ getLessonById(item).title }} - {{ getLessonById(item).price }}
                                 
                                 <!-- Button to remove the subject from the cart when clicked -->
                                 <button @click="removeFromCart(item)">Remove</button>
@@ -166,12 +167,11 @@
                         </ol>
                     </div>
                     <button v-on:click="submitForm" id="submitBtn"> Place Order </button>
-
                 </div>
             </main>
         </div>
         <!-- External JavaScript files for subjects and custom scripts -->
-        <script src="subjects.js"></script>
+        <!-- <script src="subjects.js"></script> -->
         <script type="text/javascript" src="scripts.js"></script>
     </body>
 

@@ -1,3 +1,5 @@
+// const { response } = require("express");
+
 // Create a Vue instance to manage the application
 let webstore = new Vue({
     // Connect to the HTML element with the ID 'app'
@@ -12,10 +14,26 @@ let webstore = new Vue({
             lastName: '',
             contactNum: '',
         },
-        subjects: subjects || [],
+        subjects: [], // Updated property name to lessons
         cart: [],
         sortOrder: '',
         searchQuery: '',
+    },
+
+    created: function () {
+        console.log("Requesting data from the server ...");
+    
+        fetch('http://localhost:3000/collection/lessons')
+            .then(function (response) {
+                response.json().then(function (json) {
+                    // Update the subjects data property with the fetched data
+                    webstore.subjects = json;
+                    console.log(json);
+                });
+            })
+            .catch(function (error) {
+                console.error('Error fetching data:', error);
+            });
     },
 
     // Methods for handling user interactions and actions
@@ -25,16 +43,21 @@ let webstore = new Vue({
         },
 
         showCheckout1() {
-            // Toggle between showing subjects and the cart for checkout
+            // Toggle between showing lessons and the cart for checkout
             if (this.cart.length > 0) {
                 this.showSubject = !this.showSubject;
             } else {
                 alert('Add a lesson to the cart to proceed to checkout.');
             }
+
+            // Fetch lessons when transitioning to the lesson page
+            if (this.showSubject) {
+                this.fetchLessons();
+            }
         },
 
         showCheckout2() {
-            // Toggle between showing subjects and the cart when returning from checkout
+            // Toggle between showing lessons and the cart when returning from checkout
             this.showSubject = !this.showSubject;
         },
 
@@ -44,6 +67,7 @@ let webstore = new Vue({
                 alert('Please enter all required details before placing the order.');
             } else {
                 alert('You Have Successfully Applied :D');
+                this.postOrder(); // Call the method to post the order to the server
                 this.cart.length = 0;
                 this.order.firstName = '';
                 this.order.lastName = '';
@@ -53,7 +77,7 @@ let webstore = new Vue({
         },
 
         cartCount(id) {
-            // Count occurrences of a subject in the cart
+            // Count occurrences of a lesson in the cart
             let count = 0;
             for (let i = 0; i < this.cart.length; i++) {
                 if (this.cart[i] === id) {
@@ -63,49 +87,115 @@ let webstore = new Vue({
             return count;
         },
 
-        canAddToCart: function (subject) {
-            // Check if a subject can be added to the cart
-            return subject.availableSpaces > this.cartCount(subject.id);
+        canAddToCart: function (lesson) {
+            // Check if a lesson can be added to the cart
+            return lesson.availableSpaces > this.cartCount(lesson.id);
         },
 
-        // Remove a subject from the cart based on its ID
+        // Remove a lesson from the cart based on its ID
         removeFromCart(id) {
-            // Find the index of the subject with the given ID in the cart
+            // Find the index of the lesson with the given ID in the cart
             const index = this.cart.indexOf(id);
 
-            // Check if the subject is in the cart
+            // Check if the lesson is in the cart
             if (index !== -1) {
-                // Remove the subject from the cart using splice
+                // Remove the lesson from the cart using splice
                 this.cart.splice(index, 1);
 
-                // If the cart is empty after removal, bring the user back to the subject page
+                // If the cart is empty after removal, bring the user back to the lesson page
                 if (this.cart.length === 0) {
                     this.showSubject = !this.showSubject;
                 }
             }
         },
 
-        getSubjectById(id) {
-            // Get a subject by its ID
-            return this.subjects.find(subject => subject.id === id);
+        getLessonById(id) {
+            // Get a lesson by its ID
+            return this.subjects ? this.subjects.find(lesson => lesson.id === id) : null;
         },
 
-        sortSubjects: function (order) {
-            // Set the sorting order for subjects
+        sortLessons: function (order) {
+            // Set the sorting order for lessons
             this.sortOrder = order;
         },
 
-        clearSearch(){
+        clearSearch() {
             // Clear the search query
-            this.searchQuery= '';
+            this.searchQuery = '';
+        },
+
+        postOrder: function () {
+            // Create an order object to be sent to the server
+            const orderData = {
+                firstName: this.order.firstName,
+                lastName: this.order.lastName,
+                contactNum: this.order.contactNum,
+                cart: this.cart,  // Include the cart details in the order
+            };
+        
+            // Send a POST request to the server
+            fetch('http://localhost:3000/collection/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData),
+            })
+            .then(response => response.json())
+            .then(responseJSON => {
+                console.log('Order successfully submitted:', responseJSON);
+        
+                // Call the method to update spaces after posting the order
+                this.updateSpaces(); // Move this line here
+        
+                // Perform any additional actions after successful submission if needed
+            })
+            .catch(error => {
+                console.error('Error submitting order:', error);
+                // Handle errors as needed
+            });
+        },
+        
+    
+        updateSpaces: function () {
+            // Loop through each item in the cart and log the payload
+            this.cart.forEach(itemId => {
+                const subject = this.getLessonById(itemId);
+        
+                if (subject) {
+                    const updatedSpaces = subject.availableSpaces - 1;
+        
+                    // Log the payload before making the PUT request
+                    console.log('PUT Payload:', { availableSpaces: updatedSpaces });
+        
+                    // Send a PUT request to update the available spaces for the subject
+                    fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ availableSpaces: updatedSpaces }),
+                    })
+                    .then(response => response.json())
+                    .then(responseJSON => {
+                        console.log(`Spaces updated for subject ${itemId}:`, responseJSON);
+                        // Perform any additional actions after successful update if needed
+                    })
+                    .catch(error => {
+                        console.error(`Error updating spaces for subject ${itemId}:`, error);
+                        // Handle errors as needed
+                    });
+                }
+            });
         }
+        
     },
 
     // Computed properties for dynamic data calculations and filtering
     computed: {
         filteredSubjects: function () {
             // Copy the subjects array to avoid modifying the original array
-            let subjectsArray = this.subjects.slice(0);
+            let subjectsArray = this.subjects ? this.subjects.slice(0) : [];
 
             // Filter subjects based on the search query
             if (this.searchQuery) {
@@ -127,8 +217,6 @@ let webstore = new Vue({
                 );
             }
             
-                
-
             // Sort subjects based on the selected sorting order
             function compareSubject(a, b) {                 //this function compares subjects, it take a & b as object parameter representing the subjects.
                 const subjectA = a.title.toUpperCase();     //titles of subjects will be turned into Capslock, ensuring it is case insensitive.
@@ -194,6 +282,7 @@ let webstore = new Vue({
             }
     
             return subjectsArray;
+            
         },
     },
 });
