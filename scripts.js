@@ -145,8 +145,8 @@ let webstore = new Vue({
             .then(responseJSON => {
                 console.log('Order successfully submitted:', responseJSON);
         
-                // Call the method to update spaces after posting the order
-                this.updateSpaces(); // Move this line here
+                // Move the updateSpaces call here, inside the second then block
+                this.updateSpaces();
         
                 // Perform any additional actions after successful submission if needed
             })
@@ -158,36 +158,65 @@ let webstore = new Vue({
         
     
         updateSpaces: function () {
-            // Loop through each item in the cart and log the payload
+            console.log('updateSpaces method called.');
+        
+            // Create an array to store the promises returned by fetch requests
+            const fetchPromises = [];
+        
+            // Loop through each item in the cart
             this.cart.forEach(itemId => {
                 const subject = this.getLessonById(itemId);
         
                 if (subject) {
                     const updatedSpaces = subject.availableSpaces - 1;
         
-                    // Log the payload before making the PUT request
-                    console.log('PUT Payload:', { availableSpaces: updatedSpaces });
+                    // Construct the payload
+                    const payload = { availableSpaces: updatedSpaces, subjectId: itemId };
         
                     // Send a PUT request to update the available spaces for the subject
-                    fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
+                    const fetchPromise = fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ availableSpaces: updatedSpaces }),
+                        body: JSON.stringify(payload),
                     })
                     .then(response => response.json())
                     .then(responseJSON => {
-                        console.log(`Spaces updated for subject ${itemId}:`, responseJSON);
+                        console.log(`Response from server for subject ${itemId}:`, responseJSON);
+        
+                        // Check if the response indicates success
+                        if (responseJSON.msg === 'success') {
+                            console.log('Spaces updated successfully!');
+                            // Update the subject with the returned updated document
+                            this.subjects = this.subjects.map(s => (s._id === itemId ? responseJSON.updatedDocument : s));
+                        } else {
+                            console.error('Error updating spaces:', responseJSON.error);
+                        }
+        
                         // Perform any additional actions after successful update if needed
                     })
                     .catch(error => {
                         console.error(`Error updating spaces for subject ${itemId}:`, error);
                         // Handle errors as needed
                     });
+        
+                    // Push the promise to the array
+                    fetchPromises.push(fetchPromise);
                 }
             });
-        }
+        
+            // Wait for all fetch requests to complete before proceeding
+            Promise.all(fetchPromises)
+                .then(() => {
+                    console.log('All fetch requests completed.');
+                    // Perform any additional actions after all successful updates if needed
+                })
+                .catch(error => {
+                    console.error('Error in one or more fetch requests:', error);
+                    // Handle errors as needed
+                });
+        },
         
     },
 

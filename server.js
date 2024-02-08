@@ -60,26 +60,27 @@ app.put('/collection/:collectionName/:id', (req, res, next) => {
     console.log('PUT Request Received:', req.body);
     console.log('ID:', req.params.id);
 
-    req.collection.update(
+    req.collection.updateOne(
         { _id: new ObjectID(req.params.id) },
         { $set: req.body },
-        { safe: true, multi: false },
         (err, result) => {
             if (err) {
                 console.error('Error updating spaces:', err);
                 return res.status(500).json({ msg: 'error', error: err.message });
             }
 
-            console.log('Spaces updated successfully:', result);
-
-            if (result.result.nModified === 1) {
-                res.json({ msg: 'success' });
+            // Check if the document is found and updated
+            if (result.matchedCount === 1 && result.modifiedCount === 1) {
+                // Send a success response with the updated document
+                res.json({ msg: 'success', updatedDocument: result.ops[0] });
             } else {
+                // Send an error response if the document is not found or not updated
                 res.status(404).json({ msg: 'error', error: 'No document found for update.' });
             }
         }
     );
 });
+
 
 
 
