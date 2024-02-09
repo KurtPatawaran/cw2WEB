@@ -156,68 +156,60 @@ let webstore = new Vue({
             });
         },
         
-    
         updateSpaces: function () {
             console.log('updateSpaces method called.');
         
-            // Create an array to store the promises returned by fetch requests
-            const fetchPromises = [];
+            // Save the current context
+            const self = this;
         
+            if (this.cart) {
+                console.log('this.cart:', this.cart);
             // Loop through each item in the cart
-            this.cart.forEach(itemId => {
+            this.cart.forEach(function (itemId) {
+                console.log("cart.forEach");
                 const subject = this.getLessonById(itemId);
+                console.log('Subject for itemId', itemId, ':', subject);
         
                 if (subject) {
                     const updatedSpaces = subject.availableSpaces - 1;
-        
-                    // Construct the payload
                     const payload = { availableSpaces: updatedSpaces, subjectId: itemId };
         
                     // Send a PUT request to update the available spaces for the subject
-                    const fetchPromise = fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
+                    fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload),
                     })
-                    .then(response => response.json())
-                    .then(responseJSON => {
-                        console.log(`Response from server for subject ${itemId}:`, responseJSON);
+                        .then(response => response.json())
+                        .then(responseJSON => {
+                            console.log(`Response from server for subject ${itemId}:`, responseJSON);
         
-                        // Check if the response indicates success
-                        if (responseJSON.msg === 'success') {
-                            console.log('Spaces updated successfully!');
-                            // Update the subject with the returned updated document
-                            this.subjects = this.subjects.map(s => (s._id === itemId ? responseJSON.updatedDocument : s));
-                        } else {
-                            console.error('Error updating spaces:', responseJSON.error);
-                        }
+                            // Check if the response indicates success
+                            if (responseJSON.msg === 'success') {
+                                console.log('Spaces updated successfully!');
+                                // Update the subject with the returned updated document
+                                self.subjects = self.subjects.map(s => (s._id === itemId ? responseJSON.updatedDocument : s));
+                            } else {
+                                console.error('Error updating spaces:', responseJSON.error);
+                            }
         
-                        // Perform any additional actions after successful update if needed
-                    })
-                    .catch(error => {
-                        console.error(`Error updating spaces for subject ${itemId}:`, error);
-                        // Handle errors as needed
-                    });
-        
-                    // Push the promise to the array
-                    fetchPromises.push(fetchPromise);
+                            // Perform any additional actions after successful update if needed
+                        })
+                        .catch(error => {
+                            console.error(`Error updating spaces for subject ${itemId}:`, error);
+                            // Handle errors as needed
+                        });
                 }
-            });
-        
-            // Wait for all fetch requests to complete before proceeding
-            Promise.all(fetchPromises)
-                .then(() => {
-                    console.log('All fetch requests completed.');
-                    // Perform any additional actions after all successful updates if needed
-                })
-                .catch(error => {
-                    console.error('Error in one or more fetch requests:', error);
-                    // Handle errors as needed
-                });
-        },
-        
+            });       
+            // Perform any additional actions after all successful updates if needed
+            console.log('All fetch requests completed.');
+            }else {
+                // Log an error message if 'cart' is undefined or null
+                console.error('Cart is undefined or null.');
+            }
+        },                   
     },
 
     // Computed properties for dynamic data calculations and filtering
