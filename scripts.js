@@ -1,5 +1,7 @@
 // const { response } = require("express");
 
+// const { SYSTEM_COMMAND_COLLECTION } = require("mongodb/lib/db");
+
 // Create a Vue instance to manage the application
 let webstore = new Vue({
     // Connect to the HTML element with the ID 'app'
@@ -73,6 +75,7 @@ let webstore = new Vue({
                 this.order.lastName = '';
                 this.order.contactNum = '';
                 this.showSubject = !this.showSubject;
+                location.reload();
             }
         },
 
@@ -123,9 +126,39 @@ let webstore = new Vue({
             // Clear the search query
             this.searchQuery = '';
         },
+        getSubject: function(id){
+          
+        },
 
         postOrder: function () {
             // Create an order object to be sent to the server
+            console.log(this.cart);
+            for(let i = 0; i<this.cart.length;i++){
+                let course = this.getLessonById(this.cart[i]);
+                let quantity = course.availableSpaces - this.cartCount(this.cart[i]);
+                fetch('http://localhost:3000/collection/lessons/'+ course._id, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({"availableSpaces": quantity }),
+                        })
+                // for(let i = 0; i< this.subjects.length; i++){
+                //     if(this.subjects[i].id ===this.cart[i]){
+                //         // this.subjects[i].availableSpaces = this.subjects[i].availableSpaces - this.cartCount(this.subjects[i].id);
+                //         let amount = this.subjects[i].availableSpaces - this.cartCount(this.cart[i]);
+                //         fetch('http://localhost:3000/collection/orders/'+ this.subjects[i]._id, {
+                //             method: 'PUT',
+                //             headers: {
+                //                 'Content-Type': 'application/json',
+                //             },
+                //             body: JSON.stringify(),
+                //         })
+
+                //     }
+                // }
+            }
+
             const orderData = {
                 firstName: this.order.firstName,
                 lastName: this.order.lastName,
@@ -146,7 +179,6 @@ let webstore = new Vue({
                 console.log('Order successfully submitted:', responseJSON);
         
                 // Move the updateSpaces call here, inside the second then block
-                this.updateSpaces();
         
                 // Perform any additional actions after successful submission if needed
             })
@@ -156,60 +188,71 @@ let webstore = new Vue({
             });
         },
         
-        updateSpaces: function () {
-            console.log('updateSpaces method called.');
+        // updateSpaces: function () {
+        //     console.log('updateSpaces method called.');
         
-            // Save the current context
-            const self = this;
+        //     // Check if 'cart' exists before looping through it
+        //     if (this.cart) {
+        //         // Convert observed array to a plain JavaScript array
+        //         const cartArray = Array.isArray(this.cart) ? this.cart : Object.values(this.cart);
+        //         for(let i = 0; i<this.cart.length;i++){
+        //             console.log(this.cart[i]);
+        //         }
         
-            if (this.cart) {
-                console.log('this.cart:', this.cart);
-            // Loop through each item in the cart
-            this.cart.forEach(function (itemId) {
-                console.log("cart.forEach");
-                const subject = this.getLessonById(itemId);
-                console.log('Subject for itemId', itemId, ':', subject);
+                // Loop through each item in the cart
+                // cartArray.forEach(itemId => {
+                //     console.log("cart.forEach");
+                //     const subject = this.getLessonById(itemId);
         
-                if (subject) {
-                    const updatedSpaces = subject.availableSpaces - 1;
-                    const payload = { availableSpaces: updatedSpaces, subjectId: itemId };
+                //     if (subject) {
+                //         console.log("1")
+                //         const updatedSpaces = subject.availableSpaces - 1;
+                //         const payload = { availableSpaces: updatedSpaces, subjectId: itemId };
+                //         console.log("2")
+                //         // Send a PUT request to update the available spaces for the subject
+                //         fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
+                            
+                //             method: 'PUT',
+                //             headers: {
+                //                 'Content-Type': 'application/json',
+                //             },
+                //             body: JSON.stringify(payload),
+                //         })
+                //         console.log("3")
+                //         .then(response => response.json())
+                //         console.log("4")
+                //         .then(responseJSON => {
+                //             console.log("5")
+                //             console.log(`Response from server for subject ${itemId}:`, responseJSON);
+                //             console.log("6")
+                //             // Check if the response indicates success
+                //             if (responseJSON.msg === 'success') {
+                //                 console.log("7")
+                //                 console.log('Spaces updated successfully!');
+                //                 console.log("8")
+                //                 // Update the subject with the returned updated document
+                //                 this.subjects = this.subjects.map(s => (s._id === itemId ? responseJSON.updatedDocument : s));
+                //                 console.log("9")
+                //             } else {
+                //                 console.error('Error updating spaces:', responseJSON.error);
+                //             }
         
-                    // Send a PUT request to update the available spaces for the subject
-                    fetch(`http://localhost:3000/collection/lessons/${itemId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                    })
-                        .then(response => response.json())
-                        .then(responseJSON => {
-                            console.log(`Response from server for subject ${itemId}:`, responseJSON);
+                //             // Perform any additional actions after a successful update if needed
+                //         })
+                //         .catch(error => {
+                //             console.error(`Error updating spaces for subject ${itemId}:`, error);
+                //             // Handle errors as needed
+                //         });
+                //     }
+                // });
         
-                            // Check if the response indicates success
-                            if (responseJSON.msg === 'success') {
-                                console.log('Spaces updated successfully!');
-                                // Update the subject with the returned updated document
-                                self.subjects = self.subjects.map(s => (s._id === itemId ? responseJSON.updatedDocument : s));
-                            } else {
-                                console.error('Error updating spaces:', responseJSON.error);
-                            }
-        
-                            // Perform any additional actions after successful update if needed
-                        })
-                        .catch(error => {
-                            console.error(`Error updating spaces for subject ${itemId}:`, error);
-                            // Handle errors as needed
-                        });
-                }
-            });       
-            // Perform any additional actions after all successful updates if needed
-            console.log('All fetch requests completed.');
-            }else {
-                // Log an error message if 'cart' is undefined or null
-                console.error('Cart is undefined or null.');
-            }
-        },                   
+                // Perform any additional actions after all successful updates if needed
+        //         console.log('All fetch requests completed.');
+        //     } else {
+        //         // Log an error message if 'cart' is undefined or null
+        //         console.error('Cart is undefined or null.');
+        //     }
+        // },                           
     },
 
     // Computed properties for dynamic data calculations and filtering
