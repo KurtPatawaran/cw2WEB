@@ -32,17 +32,29 @@ app.use(express.static(staticPath));
 // Resolve the paths for 'public' and 'Icons' directories
 var publicPath = path.resolve(__dirname, "public");
 var imagePath = path.resolve(__dirname, "Icons");
+
 // Serve static files from the 'public' and 'Icons' directories
 app.use('/public', express.static(publicPath));
 app.use('/Icons', express.static(imagePath));
+
+// Custom middleware for handling 404 errors related to static files
+app.use((req, res, next) => {
+    if (req.originalUrl.startsWith('/Icons/')) {
+        res.status(404).send("Static File does not exist");
+    } else {
+        next(); // Let other routes and middleware handle non-static file errors
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     if (res.headersSent) {
         return next(err);
     }
     console.error(err.stack);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).send("Internal Server Error");
 });
+
 
 // Handle GET request for the root path
 app.get('/', (req, res, next) => {
@@ -94,19 +106,39 @@ app.get('/collection/:collectionName/:id',
         });
     });
 
-// Handle PUT request to update a document in a collection
-app.put('/collection/:collectionName/:id', (req, res, next) => {    // Update a document in the specified collection by ID
-    // Formulate the update query
+// // Handle PUT request to update a document in a collection
+// app.put('/collection/:collectionName/:id', (req, res, next) => {    // Update a document in the specified collection by ID
+//     // Formulate the update query
+//     req.collection.update(
+//         { _id: new ObjectID(req.params.id) },
+//         { $set: req.body },
+//         { safe: true, multi: false },
+//         (error, result) => {        // Handle errors and send success or error response
+//             if (error) return next(error);
+//             res.send(result.result.n === 1 ? { msg: 'success' } : { msg: 'error' });
+//         }
+//     );
+// });
+
+app.put('/collection/:collectionName/:id', (req, res, next) => {
+    const newAvailableSpaces = req.body.availableSpaces;
+
+    // Validate that newAvailableSpaces is a valid number
+    if (typeof newAvailableSpaces !== 'number' || isNaN(newAvailableSpaces)) {
+        return res.status(400).send('Invalid value for availableSpaces');
+    }
+
     req.collection.update(
         { _id: new ObjectID(req.params.id) },
-        { $set: req.body },
+        { $set: { availableSpaces: newAvailableSpaces } },
         { safe: true, multi: false },
-        (error, result) => {        // Handle errors and send success or error response
+        (error, result) => {
             if (error) return next(error);
             res.send(result.result.n === 1 ? { msg: 'success' } : { msg: 'error' });
         }
     );
 });
+
 
 
 // Handle DELETE request to delete a document from a collection
