@@ -63,19 +63,42 @@ let webstore = new Vue({
             this.showSubject = !this.showSubject;
         },
 
+        // submitForm() {
+        //     // Submit the order after validating details
+        //     if (!this.order.firstName || !this.order.lastName || !this.order.contactNum) {
+        //         alert('Please enter all required details before placing the order.');
+        //     } else {
+        //         alert('You Have Successfully Applied :D');
+        //         this.postOrder(); // Call the method to post the order to the server
+        //         this.cart.length = 0;
+        //         this.order.firstName = '';
+        //         this.order.lastName = '';
+        //         this.order.contactNum = '';
+        //         this.showSubject = !this.showSubject;
+        //         location.reload();
+        //     }
+        // },
+
         submitForm() {
             // Submit the order after validating details
             if (!this.order.firstName || !this.order.lastName || !this.order.contactNum) {
                 alert('Please enter all required details before placing the order.');
             } else {
                 alert('You Have Successfully Applied :D');
-                this.postOrder(); // Call the method to post the order to the server
-                this.cart.length = 0;
-                this.order.firstName = '';
-                this.order.lastName = '';
-                this.order.contactNum = '';
-                this.showSubject = !this.showSubject;
-                location.reload();
+                // Call the postOrder method and use then/catch to handle the next steps
+                this.postOrder()
+                    .then(() => {
+                        this.cart.length = 0;
+                        this.order.firstName = '';
+                        this.order.lastName = '';
+                        this.order.contactNum = '';
+                        this.showSubject = !this.showSubject;
+                        location.reload();
+                    })
+                    .catch(error => {
+                        // Handle errors from the postOrder method
+                        console.error('Error in submitForm:', error);
+                    });
             }
         },
 
@@ -130,62 +153,116 @@ let webstore = new Vue({
           
         },
 
+        // postOrder: function () {
+        //     // Create an order object to be sent to the server
+        //     console.log(this.cart);
+
+        //     for(let i = 0; i<this.cart.length;i++){
+        //         let course = this.getLessonById(this.cart[i]);
+        //         let quantity = course.availableSpaces - this.cartCount(this.cart[i]);
+        //         fetch('http://localhost:3000/collection/lessons/'+ course._id, {
+        //                     method: 'PUT',
+        //                     headers: {
+        //                         'Content-Type': 'application/json',
+        //                     },
+        //                     body: JSON.stringify({"availableSpaces": quantity }),
+        //                 })
+        //         // for(let i = 0; i< this.subjects.length; i++){
+        //         //     if(this.subjects[i].id ===this.cart[i]){
+        //         //         // this.subjects[i].availableSpaces = this.subjects[i].availableSpaces - this.cartCount(this.subjects[i].id);
+        //         //         let amount = this.subjects[i].availableSpaces - this.cartCount(this.cart[i]);
+        //         //         fetch('http://localhost:3000/collection/orders/'+ this.subjects[i]._id, {
+        //         //             method: 'PUT',
+        //         //             headers: {
+        //         //                 'Content-Type': 'application/json',
+        //         //             },
+        //         //             body: JSON.stringify(),
+        //         //         })
+
+        //         //     }
+        //         // }
+        //     }
+
+        //     const orderData = {
+        //         firstName: this.order.firstName,
+        //         lastName: this.order.lastName,
+        //         contactNum: this.order.contactNum,
+        //         cart: this.cart,  // Include the cart details in the order
+        //     };
+        
+        //     // Log the order data
+        //     console.log('Order Placed:', orderData);
+
+        //     // Send a POST request to the server
+        //     fetch('http://localhost:3000/collection/orders', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(orderData),
+        //     })
+        //     .then(response => response.json())
+        //     .then(responseJSON => {
+        //         console.log('Order successfully submitted:', responseJSON);
+        
+        //         // Move the updateSpaces call here, inside the second then block
+        
+        //         // Perform any additional actions after successful submission if needed
+        //     })
+        //     .catch(error => {
+        //         console.error('Error submitting order:', error);
+        //         // Handle errors as needed
+        //     });
+        // },
+
         postOrder: function () {
-            // Create an order object to be sent to the server
             console.log(this.cart);
-            for(let i = 0; i<this.cart.length;i++){
-                let course = this.getLessonById(this.cart[i]);
-                let quantity = course.availableSpaces - this.cartCount(this.cart[i]);
-                fetch('http://localhost:3000/collection/lessons/'+ course._id, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({"availableSpaces": quantity }),
-                        })
-                // for(let i = 0; i< this.subjects.length; i++){
-                //     if(this.subjects[i].id ===this.cart[i]){
-                //         // this.subjects[i].availableSpaces = this.subjects[i].availableSpaces - this.cartCount(this.subjects[i].id);
-                //         let amount = this.subjects[i].availableSpaces - this.cartCount(this.cart[i]);
-                //         fetch('http://localhost:3000/collection/orders/'+ this.subjects[i]._id, {
-                //             method: 'PUT',
-                //             headers: {
-                //                 'Content-Type': 'application/json',
-                //             },
-                //             body: JSON.stringify(),
-                //         })
-
-                //     }
-                // }
-            }
-
-            const orderData = {
-                firstName: this.order.firstName,
-                lastName: this.order.lastName,
-                contactNum: this.order.contactNum,
-                cart: this.cart,  // Include the cart details in the order
-            };
         
-            // Send a POST request to the server
-            fetch('http://localhost:3000/collection/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderData),
-            })
-            .then(response => response.json())
-            .then(responseJSON => {
-                console.log('Order successfully submitted:', responseJSON);
+            // Create an array of promises for fetch requests inside the loop
+            const fetchPromises = this.cart.map((cartItem) => {
+                let course = this.getLessonById(cartItem);
+                let quantity = course.availableSpaces - this.cartCount(cartItem);
         
-                // Move the updateSpaces call here, inside the second then block
-        
-                // Perform any additional actions after successful submission if needed
-            })
-            .catch(error => {
-                console.error('Error submitting order:', error);
-                // Handle errors as needed
+                return fetch(`http://localhost:3000/collection/lessons/${course._id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ "availableSpaces": quantity }),
+                });
             });
+        
+            // Use Promise.all to wait for all fetch promises to complete
+            return Promise.all(fetchPromises)
+                .then(() => {
+                    const orderData = {
+                        firstName: this.order.firstName,
+                        lastName: this.order.lastName,
+                        contactNum: this.order.contactNum,
+                        cart: this.cart,
+                    };
+        
+                    console.log('Order Placed:', orderData);
+        
+                    // Return the promise for the final fetch request
+                    return fetch('http://localhost:3000/collection/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(orderData),
+                    });
+                })
+                .then(response => response.json())
+                .then(responseJSON => {
+                    console.log('Order successfully submitted:', responseJSON);
+                    // Move the updateSpaces call here, inside the second then block
+                    // Perform any additional actions after successful submission if needed
+                })
+                .catch(error => {
+                    console.error('Error submitting order:', error);
+                    // Handle errors as needed
+                });
         },
         
         // updateSpaces: function () {
