@@ -38,6 +38,32 @@ let webstore = new Vue({
             });
     },
 
+    watch: {
+        searchQuery: function (newQuery, oldQuery) {
+            console.log('Search Query Changed:', newQuery);
+    
+            // Make an HTTP request to log the search query on the server
+            fetch('http://localhost:3000/log-search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ searchQuery: newQuery }),
+            })
+                .then(response => response.json())
+                .then(responseJSON => {
+                    console.log('Server Response:', responseJSON);
+                })
+                .catch(error => {
+                    console.error('Error logging search query:', error);
+                });
+    
+            // Use the computed property to get the filtered subjects
+            console.log('Filtered Subjects:', this.filteredSubjects);
+        },
+    },
+    
+
     // Methods for handling user interactions and actions
     methods: {
         addToCart: function (subject) {
@@ -78,7 +104,7 @@ let webstore = new Vue({
         //         location.reload();
         //     }
         // },
-
+        
         submitForm() {
             // Submit the order after validating details
             if (!this.order.firstName || !this.order.lastName || !this.order.contactNum) {

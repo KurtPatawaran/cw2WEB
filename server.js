@@ -55,6 +55,17 @@ app.param('collectionName', (req, res, next, collectionName) => {
     return next();
 });
 
+// Handle POST request for logging search queries
+app.post('/log-search', (req, res, next) => {
+    const searchQuery = req.body.searchQuery;
+    console.log('Search Query:', searchQuery);
+
+    // You can perform additional actions with the search query if needed
+
+    res.send({ msg: 'Search query logged successfully.' });
+});
+
+
 // Handle GET request for a specific collection
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}).toArray((e, results) => {
