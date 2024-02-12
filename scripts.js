@@ -25,7 +25,7 @@ let webstore = new Vue({
     created: function () {
         console.log("Requesting data from the server ...");
     
-        fetch('http://localhost:3000/collection/lessons')
+        fetch('http://petstore-pipeline-env.eba-wc6tzym5.eu-west-2.elasticbeanstalk.com/collection/lessons')
             .then(function (response) {
                 response.json().then(function (json) {
                     // Update the subjects data property with the fetched data
@@ -43,7 +43,7 @@ let webstore = new Vue({
             console.log('Search Query Changed:', newQuery);
     
             // Make an HTTP request to log the search query on the server
-            fetch('http://localhost:3000/log-search', {
+            fetch('http://petstore-pipeline-env.eba-wc6tzym5.eu-west-2.elasticbeanstalk.com/log-search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -249,7 +249,7 @@ let webstore = new Vue({
                 let course = this.getLessonById(cartItem);
                 let quantity = course.availableSpaces - this.cartCount(cartItem);
         
-                return fetch(`http://localhost:3000/collection/lessons/${course._id}`, {
+                return fetch(`http://petstore-pipeline-env.eba-wc6tzym5.eu-west-2.elasticbeanstalk.com/collection/lessons/${course._id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -271,7 +271,7 @@ let webstore = new Vue({
                     console.log('Order Placed:', orderData);
         
                     // Return the promise for the final fetch request
-                    return fetch('http://localhost:3000/collection/orders', {
+                    return fetch('http://petstore-pipeline-env.eba-wc6tzym5.eu-west-2.elasticbeanstalk.com/collection/orders', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
