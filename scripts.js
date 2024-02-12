@@ -37,31 +37,34 @@ let webstore = new Vue({
             });
     },
 
-    // Watching for changes in the searchQuery property
     watch: {
+        // Watch for changes in the searchQuery property
         searchQuery: function (newQuery, oldQuery) {
+            // Log the change in searchQuery
             console.log('Search Query Changed:', newQuery);
-
-            // Making an HTTP request to log the search query on the server
-            fetch('http://localhost:3000/log-search', {
-                method: 'POST',
+    
+            // Make an HTTP GET request to log the search query on the server
+            fetch(`http://localhost:3000/log-search?searchQuery=${newQuery}`, {
+                method: 'GET', // Using the GET method for the request
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json', // Set the content type for the request
                 },
-                body: JSON.stringify({ searchQuery: newQuery }),
             })
-                .then(response => response.json())
-                .then(responseJSON => {
-                    console.log('Server Response:', responseJSON);
-                })
-                .catch(error => {
-                    console.error('Error logging search query:', error);
-                });
-
-            // Using the computed property to get the filtered subjects
+            .then(response => response.json()) // Convert the server response to JSON format
+            .then(responseJSON => {
+                // Log the server response
+                console.log('Server Response:', responseJSON);
+            })
+            .catch(error => {
+                // Log any errors that occurred during the request
+                console.error('Error logging search query:', error);
+            });
+    
+            // Use the computed property to get the filtered subjects
             console.log('Filtered Subjects:', this.filteredSubjects);
         },
     },
+    
 
     // Methods for handling user interactions and actions
     methods: {
@@ -160,13 +163,16 @@ let webstore = new Vue({
         },
         
         postOrder: function () {
+            // Log the content of the cart array
             console.log(this.cart);
-
+        
             // Creating an array of promises for fetch requests inside the loop
             const fetchPromises = this.cart.map((cartItem) => {
+                // Get the course details and calculate the quantity
                 let course = this.getLessonById(cartItem);
                 let quantity = course.availableSpaces - this.cartCount(cartItem);
-
+        
+                // Create a fetch request to update availableSpaces for the course
                 return fetch(`http://localhost:3000/collection/lessons/${course._id}`, {
                     method: 'PUT',
                     headers: {
@@ -175,20 +181,22 @@ let webstore = new Vue({
                     body: JSON.stringify({ "availableSpaces": quantity }),
                 });
             });
-
+        
             // Using Promise.all to wait for all fetch promises to complete
             return Promise.all(fetchPromises)
                 .then(() => {
+                    // Prepare order data to be sent to the server
                     const orderData = {
                         firstName: this.order.firstName,
                         lastName: this.order.lastName,
                         contactNum: this.order.contactNum,
                         cart: this.cart,
                     };
-
+        
+                    // Log the order data
                     console.log('Order Placed:', orderData);
-
-                    // Returning the promise for the final fetch request
+        
+                    // Returning the promise for the final fetch request to submit the order
                     return fetch('http://localhost:3000/collection/orders', {
                         method: 'POST',
                         headers: {
@@ -197,18 +205,20 @@ let webstore = new Vue({
                         body: JSON.stringify(orderData),
                     });
                 })
-                .then(response => response.json())
+                .then(response => response.json()) // Parse the server response as JSON
                 .then(responseJSON => {
+                    // Log the success message after the order is successfully submitted
                     console.log('Order successfully submitted:', responseJSON);
-                    // Moving the updateSpaces call here, inside the second then block
-                    // Performing any additional actions after successful submission if needed
+                    
                 })
                 .catch(error => {
-                    console.error('Error submitting order:', error);
+                    // Log and handle errors that occurred during the process
                     // Handling errors as needed
+                    console.error('Error submitting order:', error);
                 });
-        },   
-    },
+            },
+        },
+        
 
     // Computed properties for dynamic data calculations and filtering
     computed: {

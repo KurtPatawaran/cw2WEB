@@ -19,6 +19,13 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers');
     next();
 });
+
+//logger middleware, logs all requests done
+app.use(function (req, res, next) {
+    console.log("In comes a " + req.method + " to " + req.url);
+    next();
+});
+
 // Connect to MongoDB
 const MongoClient = require('mongodb').MongoClient;
 let db;
@@ -66,14 +73,13 @@ app.param('collectionName', (req, res, next, collectionName) => {
     return next();
 });
 
-// Handle POST request for logging search queries
-app.post('/log-search', (req, res, next) => {
-    const searchQuery = req.body.searchQuery;
+// Handle GET request for logging search queries
+app.get('/log-search', (req, res, next) => {
+    const searchQuery = req.query.searchQuery;
     console.log('Search Query:', searchQuery);
 
     // You can perform additional actions with the search query if needed
-
-    res.send({ msg: 'Search query logged successfully.' });
+    res.send({ msg: 'Logged search query in Terminal' });
 });
 
 // Handle GET request for a specific collection
@@ -86,12 +92,15 @@ app.get('/collection/:collectionName', (req, res, next) => {
 
 // Handle POST request to insert data into a collection
 app.post('/collection/:collectionName', (req, res, next) => {
+    // Log the order details received in the request body to the console
     console.log('Order Placed:', req.body);
-    req.collection.insert(req.body, (e, results) => {
+    req.collection.insert(req.body, (e, results) => {   // Use MongoDB's insert method to add the data from the request body to the specified collection
+        // error-handling middleware
         if (e) return next(e);
-        res.send(results.ops);
+            res.send(results.ops);// Send the inserted data back as the response to the client
     });
 });
+
 
 // Import ObjectID from mongodb library
 const ObjectID = require('mongodb').ObjectID;
@@ -106,23 +115,28 @@ app.get('/collection/:collectionName/:id', (req, res, next) => {
 
 // Handle PUT request to update availableSpaces in a specific document
 app.put('/collection/:collectionName/:id', (req, res, next) => {
+    // Extract the newAvailableSpaces value from the request body
     const newAvailableSpaces = req.body.availableSpaces;
 
     // Validate that newAvailableSpaces is a valid number
     if (typeof newAvailableSpaces !== 'number' || isNaN(newAvailableSpaces)) {
+        // Return a 400 Bad Request response if the provided value is not a valid number
         return res.status(400).send('Invalid value for availableSpaces');
     }
 
+    // Update the document in the specified collection using MongoDB's update method
     req.collection.update(
+        // Specify the document to be updated based on its ID
         { _id: new ObjectID(req.params.id) },
-        { $set: { availableSpaces: newAvailableSpaces } },
-        { safe: true, multi: false },
-        (error, result) => {
-            if (error) return next(error);
-            res.send(result.result.n === 1 ? { msg: 'success' } : { msg: 'error' });
+        { $set: { availableSpaces: newAvailableSpaces } },      // Set the availableSpaces field to the new value using MongoDB's $set operator
+        { safe: true, multi: false },                   // Set options for the update operation (safe, multi)
+        (error, result) => {                        // Callback function to handle the result of the update operation           
+            if (error) return next(error);      //error-handling middleware
+            res.send(result.result.n === 1 ? { msg: 'success' } : { msg: 'error' });    // Send a response indicating the success or failure of the update operation
         }
     );
 });
+
 
 // Set the port for the server
 const port = process.env.PORT || 3000;
