@@ -77,7 +77,6 @@ app.post('/log-search', (req, res, next) => {
     res.send({ msg: 'Search query logged successfully.' });
 });
 
-
 // Handle GET request for a specific collection
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}).toArray((e, results) => {
@@ -106,20 +105,6 @@ app.get('/collection/:collectionName/:id',
         });
     });
 
-// // Handle PUT request to update a document in a collection
-// app.put('/collection/:collectionName/:id', (req, res, next) => {    // Update a document in the specified collection by ID
-//     // Formulate the update query
-//     req.collection.update(
-//         { _id: new ObjectID(req.params.id) },
-//         { $set: req.body },
-//         { safe: true, multi: false },
-//         (error, result) => {        // Handle errors and send success or error response
-//             if (error) return next(error);
-//             res.send(result.result.n === 1 ? { msg: 'success' } : { msg: 'error' });
-//         }
-//     );
-// });
-
 app.put('/collection/:collectionName/:id', (req, res, next) => {
     const newAvailableSpaces = req.body.availableSpaces;
 
@@ -139,25 +124,10 @@ app.put('/collection/:collectionName/:id', (req, res, next) => {
     );
 });
 
-
-
-// Handle DELETE request to delete a document from a collection
-// app.delete('/collection/:collectionName/:id', (req, res, next) => {
-//     req.collection.deleteOne(
-//         { _id: new ObjectID(req.params.id) },
-//         (e, result) => {
-//             if (e) return next(e);
-//             res.send((result.result.n === 1) ?
-//                 { msg: 'success' } : { msg: 'error' });
-//         });
-// });
-
 // Set the port for the server
 const port = process.env.PORT || 3000;
 // Start the server and listen on the specified port
-app.listen(port, () => {
-    
-});
+app.listen(port, () => {});
 
 // Log a message indicating that the server is running
 console.log('Server is running on port', port);
