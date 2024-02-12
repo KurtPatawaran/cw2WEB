@@ -1,9 +1,9 @@
-// Create a Vue instance to manage the application
+// Creating a Vue instance to manage the application
 let webstore = new Vue({
-    // Connect to the HTML element with the ID 'app'
+    // Connecting to the HTML element with the ID 'app'
     el: '#app',
 
-    // Data properties to store information and state
+    // Storing information and state in data properties
     data: {
         siteName: 'After School Activities - Enroll Now!',
         showSubject: true,
@@ -12,19 +12,22 @@ let webstore = new Vue({
             lastName: '',
             contactNum: '',
         },
-        subjects: [], // Updated property name to lessons
+        // Changed the property name to lessons
+        subjects: [], 
         cart: [],
         sortOrder: '',
         searchQuery: '',
     },
 
+    // Triggered when the instance is created
     created: function () {
-        console.log("Requesting data from the server ...");
-    
+        console.log("Fetching data from the server ...");
+
+        // Fetching lessons data from the server
         fetch('http://localhost:3000/collection/lessons')
             .then(function (response) {
                 response.json().then(function (json) {
-                    // Update the subjects data property with the fetched data
+                    // Updating the subjects data property with the fetched data
                     webstore.subjects = json;
                     console.log(json);
                 });
@@ -34,11 +37,12 @@ let webstore = new Vue({
             });
     },
 
+    // Watching for changes in the searchQuery property
     watch: {
         searchQuery: function (newQuery, oldQuery) {
             console.log('Search Query Changed:', newQuery);
-    
-            // Make an HTTP request to log the search query on the server
+
+            // Making an HTTP request to log the search query on the server
             fetch('http://localhost:3000/log-search', {
                 method: 'POST',
                 headers: {
@@ -53,12 +57,11 @@ let webstore = new Vue({
                 .catch(error => {
                     console.error('Error logging search query:', error);
                 });
-    
-            // Use the computed property to get the filtered subjects
+
+            // Using the computed property to get the filtered subjects
             console.log('Filtered Subjects:', this.filteredSubjects);
         },
     },
-    
 
     // Methods for handling user interactions and actions
     methods: {
@@ -67,31 +70,31 @@ let webstore = new Vue({
         },
 
         showCheckout1() {
-            // Toggle between showing lessons and the cart for checkout
+            // Toggling between showing lessons and the cart for checkout
             if (this.cart.length > 0) {
                 this.showSubject = !this.showSubject;
             } else {
                 alert('Add a lesson to the cart to proceed to checkout.');
             }
 
-            // Fetch lessons when transitioning to the lesson page
+            // Fetching lessons when transitioning to the lesson page
             if (this.showSubject) {
                 this.fetchLessons();
             }
         },
 
         showCheckout2() {
-            // Toggle between showing lessons and the cart when returning from checkout
+            // Toggling between showing lessons and the cart when returning from checkout
             this.showSubject = !this.showSubject;
         },
-        
+
         submitForm() {
-            // Submit the order after validating details
+            // Submitting the order after validating details
             if (!this.order.firstName || !this.order.lastName || !this.order.contactNum) {
                 alert('Please enter all required details before placing the order.');
             } else {
                 alert('You Have Successfully Applied :D');
-                // Call the postOrder method and use then/catch to handle the next steps
+                // Calling the postOrder method and using then/catch to handle the next steps
                 this.postOrder()
                     .then(() => {
                         this.cart.length = 0;
@@ -102,14 +105,14 @@ let webstore = new Vue({
                         location.reload();
                     })
                     .catch(error => {
-                        // Handle errors from the postOrder method
+                        // Handling errors from the postOrder method
                         console.error('Error in submitForm:', error);
                     });
             }
         },
 
         cartCount(id) {
-            // Count occurrences of a lesson in the cart
+            // Counting occurrences of a lesson in the cart
             let count = 0;
             for (let i = 0; i < this.cart.length; i++) {
                 if (this.cart[i] === id) {
@@ -120,21 +123,21 @@ let webstore = new Vue({
         },
 
         canAddToCart: function (lesson) {
-            // Check if a lesson can be added to the cart
+            // Checking if a lesson can be added to the cart
             return lesson.availableSpaces > this.cartCount(lesson.id);
         },
 
-        // Remove a lesson from the cart based on its ID
+        // Removing a lesson from the cart based on its ID
         removeFromCart(id) {
-            // Find the index of the lesson with the given ID in the cart
+            // Finding the index of the lesson with the given ID in the cart
             const index = this.cart.indexOf(id);
 
-            // Check if the lesson is in the cart
+            // Checking if the lesson is in the cart
             if (index !== -1) {
-                // Remove the lesson from the cart using splice
+                // Removing the lesson from the cart using splice
                 this.cart.splice(index, 1);
 
-                // If the cart is empty after removal, bring the user back to the lesson page
+                // If the cart is empty after removal, bringing the user back to the lesson page
                 if (this.cart.length === 0) {
                     this.showSubject = !this.showSubject;
                 }
@@ -142,31 +145,28 @@ let webstore = new Vue({
         },
 
         getLessonById(id) {
-            // Get a lesson by its ID
+            // Getting a lesson by its ID
             return this.subjects ? this.subjects.find(lesson => lesson.id === id) : null;
         },
 
         sortLessons: function (order) {
-            // Set the sorting order for lessons
+            // Setting the sorting order for lessons
             this.sortOrder = order;
         },
 
         clearSearch() {
-            // Clear the search query
+            // Clearing the search query
             this.searchQuery = '';
         },
-        getSubject: function(id){
-          
-        },
-
+        
         postOrder: function () {
             console.log(this.cart);
-        
-            // Create an array of promises for fetch requests inside the loop
+
+            // Creating an array of promises for fetch requests inside the loop
             const fetchPromises = this.cart.map((cartItem) => {
                 let course = this.getLessonById(cartItem);
                 let quantity = course.availableSpaces - this.cartCount(cartItem);
-        
+
                 return fetch(`http://localhost:3000/collection/lessons/${course._id}`, {
                     method: 'PUT',
                     headers: {
@@ -175,8 +175,8 @@ let webstore = new Vue({
                     body: JSON.stringify({ "availableSpaces": quantity }),
                 });
             });
-        
-            // Use Promise.all to wait for all fetch promises to complete
+
+            // Using Promise.all to wait for all fetch promises to complete
             return Promise.all(fetchPromises)
                 .then(() => {
                     const orderData = {
@@ -185,10 +185,10 @@ let webstore = new Vue({
                         contactNum: this.order.contactNum,
                         cart: this.cart,
                     };
-        
+
                     console.log('Order Placed:', orderData);
-        
-                    // Return the promise for the final fetch request
+
+                    // Returning the promise for the final fetch request
                     return fetch('http://localhost:3000/collection/orders', {
                         method: 'POST',
                         headers: {
@@ -200,12 +200,12 @@ let webstore = new Vue({
                 .then(response => response.json())
                 .then(responseJSON => {
                     console.log('Order successfully submitted:', responseJSON);
-                    // Move the updateSpaces call here, inside the second then block
-                    // Perform any additional actions after successful submission if needed
+                    // Moving the updateSpaces call here, inside the second then block
+                    // Performing any additional actions after successful submission if needed
                 })
                 .catch(error => {
                     console.error('Error submitting order:', error);
-                    // Handle errors as needed
+                    // Handling errors as needed
                 });
         },   
     },
@@ -213,54 +213,49 @@ let webstore = new Vue({
     // Computed properties for dynamic data calculations and filtering
     computed: {
         filteredSubjects: function () {
-            // Copy the subjects array to avoid modifying the original array
+            // Copying the subjects array to avoid modifying the original array
             let subjectsArray = this.subjects ? this.subjects.slice(0) : [];
 
-            // Filter subjects based on the search query
+            // Filtering subjects based on the search query
             if (this.searchQuery) {
+                // Converting search query to lowercase for case-insensitive comparison
                 const query = this.searchQuery.toLowerCase();
+
+                // Using filter to include only subjects that match the search query in title or location
                 subjectsArray = subjectsArray.filter(subject => 
                     subject.title.toLowerCase().includes(query) ||  
                     subject.location.toLowerCase().includes(query)
                 );
             }
-            // Filter subjects based on the search query
-            if (this.searchQuery) {
-                // Convert search query to lowercase for case-insensitive comparison
-                const query = this.searchQuery.toLowerCase();
-            
-                // Use filter to include only subjects that match the search query in title or location
-                subjectsArray = subjectsArray.filter(subject =>
-                    subject.title.toLowerCase().includes(query) ||
-                    subject.location.toLowerCase().includes(query)
-                );
-            }
-            
-            // Sort subjects based on the selected sorting order
-            function compareSubject(a, b) {                 //this function compares subjects, it take a & b as object parameter representing the subjects.
-                const subjectA = a.title.toUpperCase();     //titles of subjects will be turned into Capslock, ensuring it is case insensitive.
+
+            // Sorting subjects based on the selected sorting order
+            function compareSubject(a, b) {
+                // This function compares subjects, taking a & b as object parameters representing the subjects
+                const subjectA = a.title.toUpperCase(); // Titles of subjects will be turned into Capslock, ensuring it is case-insensitive.
                 const subjectB = b.title.toUpperCase();
-    
-                if (subjectA > subjectB) return 1;          //If subjectA is greater than SubjectB, return 1
-                if (subjectA < subjectB) return -1;         //If subjectA is less than SubjectB, return -1
+
+                if (subjectA > subjectB) return 1; // If subjectA is greater than SubjectB, return 1
+                if (subjectA < subjectB) return -1; // If subjectA is less than SubjectB, return -1
                 return 0;
             }
-    
-            function compareLocation(a, b) {                 //this function compares subjects, it take a & b as object parameter representing the location.
-                const locationA = a.location.toUpperCase();  //location of subjects will be turned into Capslock, ensuring it is case insensitive.
+
+            function compareLocation(a, b) {
+                // This function compares subjects, taking a & b as object parameters representing the location
+                const locationA = a.location.toUpperCase(); // Location of subjects will be turned into Capslock, ensuring it is case-insensitive.
                 const locationB = b.location.toUpperCase();
-    
-                if (locationA > locationB) return 1;        //If subjectA is greater than SubjectB, return 1
-                if (locationA < locationB) return -1;       //If subjectA is less than SubjectB, return -1
+
+                if (locationA > locationB) return 1; // If locationA is greater than LocationB, return 1
+                if (locationA < locationB) return -1; // If locationA is less than LocationB, return -1
                 return 0;
             }
-    
-            function comparePrice(a, b) {  // Comparison function for sorting objects based on their price property
-                // Convert price values from strings to floating-point numbers, to allow computation between integers
+
+            function comparePrice(a, b) {
+                // Comparison function for sorting objects based on their price property
+                // Converting price values from strings to floating-point numbers, to allow computation between integers
                 const priceA = parseFloat(a.price);
                 const priceB = parseFloat(b.price);
 
-                // Compare prices to determine their order
+                // Comparing prices to determine their order
                 if (priceA > priceB) {
                     return 1; // Positive if priceA is greater
                 } else if (priceA < priceB) {
@@ -268,11 +263,10 @@ let webstore = new Vue({
                 } else {
                     return 0; // Zero if prices are equal
                 }
-            }                            // If priceA > priceB, the result is positive; if priceA < priceB, the result is negative; if equal, result is zero.
-            
-    
-            function compareSpaces(a, b) {  
-                // return a.availableSpaces - b.availableSpaces;
+            }
+
+            function compareSpaces(a, b) {
+                // Comparison function for sorting objects based on their availableSpaces property
                 if (a.availableSpaces > b.availableSpaces) {
                     return 1; // Positive if a.availableSpaces is greater
                 } else if (a.availableSpaces < b.availableSpaces) {
@@ -281,7 +275,8 @@ let webstore = new Vue({
                     return 0; // Zero if available spaces are equal
                 }
             }
-                // Sorting logic based on the selected sortOrder
+
+            // Sorting logic based on the selected sortOrder
             if (this.sortOrder === 'ascSubject') {
                 return subjectsArray.sort(compareSubject);
             } else if (this.sortOrder === 'descSubject') {
@@ -299,9 +294,8 @@ let webstore = new Vue({
             } else if (this.sortOrder === 'descSpaces') {
                 return subjectsArray.sort((a, b) => -compareSpaces(a, b));
             }
-    
+
             return subjectsArray;
-            
         },
     },
 });

@@ -55,7 +55,6 @@ app.use((err, req, res, next) => {
     res.status(500).send("Internal Server Error");
 });
 
-
 // Handle GET request for the root path
 app.get('/', (req, res, next) => {
     res.send('Select a collection, e.g., /collection/messages');
@@ -96,15 +95,16 @@ app.post('/collection/:collectionName', (req, res, next) => {
 
 // Import ObjectID from mongodb library
 const ObjectID = require('mongodb').ObjectID;
-// Handle GET request for a specific document in a collection
-app.get('/collection/:collectionName/:id',
-    (req, res, next) => {
-        req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
-            if (e) return next(e);
-            res.send(result);
-        });
-    });
 
+// Handle GET request for a specific document in a collection
+app.get('/collection/:collectionName/:id', (req, res, next) => {
+    req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
+        if (e) return next(e);
+        res.send(result);
+    });
+});
+
+// Handle PUT request to update availableSpaces in a specific document
 app.put('/collection/:collectionName/:id', (req, res, next) => {
     const newAvailableSpaces = req.body.availableSpaces;
 
